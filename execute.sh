@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 #
 # execute.sh -s <script> -a <aulas> -u <usuarios>
 #
