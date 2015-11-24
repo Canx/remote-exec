@@ -55,7 +55,7 @@ function crear_lista_ordenadores() {
   # Si no se han indicado las aulas las procesamos todas
   if [ -z "${aulas}" ]; then
     for aula_file in ${aulas_dir}*; do
-      aulas="${aulas}${aulas_dir}${aula_file} "
+      aulas="${aulas}${aula_file} "
     done
   fi
   

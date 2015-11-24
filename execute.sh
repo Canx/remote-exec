@@ -6,21 +6,23 @@ source ./config.sh
 source ./lib.sh
 
 comprobar_parametros "$@"
-echo "PARÁMETROS:"
-echo "script:${script}"
-echo "aulas:${aulas}"
-echo "usuarios:${usuarios}"
-
 comprobar_script
 
 comprobar_usuarios
-echo "USUARIOS:"${usuarios}
 
 crear_lista_ordenadores
 echo "ORDENADORES:"${ordenadores}
 
+# TODO: no funciona!
 filtrar_ordenadores
 echo "ORDENADORES_ENCENDIDOS:"${ordenadores}
+
+echo "PARÁMETROS:"
+echo "script:${script}"
+echo "aulas:${aulas}"
+echo "usuarios:${usuarios}"
+echo "ordenadores:${ordenadores}"
+
 
 crear_directorios
 
