@@ -22,6 +22,8 @@ echo "ORDENADORES:"${ordenadores}
 filtrar_ordenadores
 echo "ORDENADORES_ENCENDIDOS:"${ordenadores}
 
+crear_directorios
+
 # Bucle principal
 # TODO: añadir capacidad de procesar en paralelo o en secuencial
 for usuario in "${usuarios[@]}"; do

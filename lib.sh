@@ -44,6 +44,7 @@ function comprobar_script() {
   else
     dir_script=$(dirname ${script})
     file_script=$(basename ${script})
+    filename_script=${file_script%.*}
   fi
 }
 
@@ -109,23 +110,42 @@ function guardar_ordenadores_pendientes() {
   fi
 }
 
+# Loguea en un archivo los datos pasados
+# $1: Mensaje
+# $2: Archivo, por defecto mensajes.log en carpeta de logs
+function log() {
+  fecha="`date +'%F %H:%M:%S - '`"
+  mensaje=$1
+  archivo=$2
+  echo "${fecha}:${mensaje}" >> ${log_dir}${archivo}
+}
+
+function crear_directorios() {
+  echo "creando directorios..."
+  echo "$DIR/${log_dir}${filename_script}/"
+
+  mkdir -p "$DIR/${logdir}${filename_script}/"
+  mkdir -p "$DIR/${tmp_dir}"
+  mkdir -p "$DIR/${pendientes_dir}"
+  mkdir -p "$DIR/${aulas_dir}"
+}
+
 # TODO: falta pulir los logs!!!
 # remote $1 $2
 # $1: ordenador
 # $2: usuario
 function remote_script {
-  echo "${usuario}@${ordenador} | `date +'%F %H:%M'` | ${script}" >> ${log_dir}${ordenador}
   if [ -f "${tmp_dir}$1" ]; then
     scp ${script} $2@$1:/tmp/ &> /dev/null
     if ! [ $? -eq 0 ]; then
-      echo "Falta instalar sshd o usuario incorrecto." >> ${log_dir}$1
+      log "${2}@${1}. Falta instalar sshd o usuario incorrecto" "errores.log"
       pendientes=${pendientes}$1" "
     else
-      ssh $2@$1 "source /tmp/${file_script}" > ${tmp_dir}$1 &>> ${log_dir}$1
+      ssh $2@$1 "source /tmp/${file_script}" > ${tmp_dir}$1 &>> "$DIR/${log_dir}${filename_script}/$1"
     fi
   else
     pendientes=${pendientes}$1" "
-    echo "Apagado." >> ${log_dir}$1
+    log "${2}@${1}. Apagado" "errores.log"
   fi
 }
 
