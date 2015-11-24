@@ -1,8 +1,11 @@
 # Funciones
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-pendientes_dir="${DIR}/${pendientes_dir}"
-aulas_dir="${DIR}/${aulas_dir}"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/"
+pendientes_dir="${DIR}${pendientes_dir}"
+aulas_dir="${DIR}${aulas_dir}"
+tmp_dir="${DIR}${tmp_dir}"
+log_dir="${DIR}${log_dir}"
+ssh_options="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 
 function comprobar_parametros() {
   while [[ $# > 1 ]]
@@ -52,7 +55,7 @@ function crear_lista_ordenadores() {
   # Si no se han indicado las aulas las procesamos todas
   if [ -z "${aulas}" ]; then
     for aula_file in ${aulas_dir}*; do
-      aulas="${aulas}${aula_file} "
+      aulas="${aulas}${aulas_dir}${aula_file} "
     done
   fi
   
@@ -63,7 +66,7 @@ function crear_lista_ordenadores() {
   if [ ! -f ${pendientes_dir}${todofile} ]; then
     aulas=( ${aulas} )
   else
-    aulas=( $todofile )
+    aulas=( ${pendientes_dir}${todofile} )
   fi
 
   # A partir de los archivos de aulas o pendientes hacemos la lista de ordenadores
@@ -101,6 +104,8 @@ function filtrar_ordenadores() {
       ping_ordenador ${ordenador} &> /dev/null &
     done
   done
+  echo "Comprobando ordenadores encendidos..."
+  wait
 }
 
 # muestra ordenadores pendientes y los guarda
@@ -122,12 +127,10 @@ function log() {
 
 function crear_directorios() {
   echo "creando directorios..."
-  echo "$DIR/${log_dir}${filename_script}/"
-
-  mkdir -p "$DIR/${logdir}${filename_script}/"
-  mkdir -p "$DIR/${tmp_dir}"
-  mkdir -p "$DIR/${pendientes_dir}"
-  mkdir -p "$DIR/${aulas_dir}"
+  mkdir -p "${log_dir}${filename_script}"
+  mkdir -p "${tmp_dir}"
+  mkdir -p "${pendientes_dir}"
+  mkdir -p "${aulas_dir}"
 }
 
 # TODO: falta pulir los logs!!!
@@ -136,12 +139,13 @@ function crear_directorios() {
 # $2: usuario
 function remote_script {
   if [ -f "${tmp_dir}$1" ]; then
-    scp ${script} $2@$1:/tmp/ &> /dev/null
+    scp ${ssh_options} ${script} $2@$1:/tmp/ &> /dev/null
     if ! [ $? -eq 0 ]; then
       log "${2}@${1}. Falta instalar sshd o usuario incorrecto" "errores.log"
       pendientes=${pendientes}$1" "
     else
-      ssh $2@$1 "source /tmp/${file_script}" > ${tmp_dir}$1 &>> "$DIR/${log_dir}${filename_script}/$1"
+      #touch "${DIR}${log_dir}${filename_script}/${1}"
+      ssh ${ssh_options} $2@$1 "source /tmp/${file_script}" > ${tmp_dir}$1 &>> "${log_dir}${filename_script}/${1}"
     fi
   else
     pendientes=${pendientes}$1" "

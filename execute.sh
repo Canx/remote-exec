@@ -35,4 +35,4 @@ done
 wait
 
 guardar_ordenadores_pendientes
-echo "pendientes:`cat ${todofile}`"
+echo "pendientes:`cat ${pendientes_dir}${todofile}`"
