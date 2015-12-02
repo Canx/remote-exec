@@ -7,18 +7,17 @@ source ./lib.sh
 
 comprobar_parametros "$@"
 comprobar_script
-comprobar_usuarios
 echo "script:${script}"
 echo "aulas:${aulas}"
 echo "usuarios:${usuarios}"
 echo
 
 crear_lista_ordenadores
-echo "ORDENADORES:"${ordenadores}
+echo "lista ordenadores:"${ordenadores}
 
 # TODO: no funciona!
 filtrar_ordenadores
-echo "ORDENADORES_ENCENDIDOS:"${ordenadores}
+echo "lista ordenadores encendidos:"${ordenadores}
 
 echo "PARÁMETROS:"
 echo "script:${script}"

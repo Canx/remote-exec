@@ -6,8 +6,12 @@ aulas_dir="${DIR}${aulas_dir}"
 tmp_dir="${DIR}${tmp_dir}"
 log_dir="${DIR}${log_dir}"
 ssh_options="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+bold=$(tput bold)
+normal=$(tput sgr0)
 
-function man() {
+# $1: mensaje de error
+function error() {
+    echo "${bold}ERROR: $1${normal}"
     echo
     echo "Modo de empleo: $ execute.sh -s [script] -a [aulas] -u [usuarios]"
     echo
@@ -53,8 +57,7 @@ function comprobar_parametros() {
  
   # Si algún parámetro no está damos mensaje de error y salimos
   if [ -z "${script}" ] || [ -z "${usuarios}" ] || [ -z "${aulas}" ]; then
-    echo "Error! debe indicar el script, aula y usuario" 
-    man
+    error "debe indicar el script, aula y usuario" 
   fi
 }
  
@@ -62,8 +65,7 @@ function comprobar_parametros() {
 function comprobar_script() {
   # Salimos si no existe el script a ejecutar
   if [ ! -f ${script} ]; then
-    echo "Error: script '${script}' no encontrado o no indicado."  
-    man
+    error "script '${script}' no encontrado o no indicado."  
   else
     dir_script=$(dirname ${script})
     file_script=$(basename ${script})
@@ -92,16 +94,6 @@ function crear_lista_ordenadores() {
   # A partir de los archivos de aulas o pendientes hacemos la lista de ordenadores
   ordenadores=`cat ${aulas[@]}`
 }
-
-function comprobar_usuarios() {
- # Comprobar usuarios
-  if [ ! -n "${usuarios}" ]; then
-     echo "Usuarios no especificados. Utilizando usuarios por defecto: ${default_users}"
-     usuarios=${default_users}
-  fi
-}
-
-
 
 # ping
 # $1: ordenador
