@@ -7,8 +7,11 @@ source ./lib.sh
 
 comprobar_parametros "$@"
 comprobar_script
-
 comprobar_usuarios
+echo "script:${script}"
+echo "aulas:${aulas}"
+echo "usuarios:${usuarios}"
+echo
 
 crear_lista_ordenadores
 echo "ORDENADORES:"${ordenadores}

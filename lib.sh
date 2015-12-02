@@ -7,6 +7,22 @@ tmp_dir="${DIR}${tmp_dir}"
 log_dir="${DIR}${log_dir}"
 ssh_options="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 
+function man() {
+    echo
+    echo "Modo de empleo: $ execute.sh -s [script] -a [aulas] -u [usuarios]"
+    echo
+    echo "Ejecuta el script en las aulas y para los usuarios indicados."
+    echo "  [script] debe ser la ruta y nombre completo de un shell script."
+    echo "  [aulas] debe ser uno a más nombres de archivos separados por espacios, que contenga cada uno una IP o nombre de dispositivo por linea."
+    echo "  [usuarios] debe ser uno o más nombres de usuarios separados por espacios que esten en todos los dispositivos indicados."
+    echo
+    echo "Ejemplos:"
+    echo "  execute.sh -s scripts/ps.sh -a aula1 -u admin"
+    echo "  execute.sh -s scripts/ps.sh -a aula1 aula2 -u user1 user2"
+    echo
+    exit 1
+}
+
 function comprobar_parametros() {
   while [[ $# > 1 ]]
   do
@@ -34,16 +50,20 @@ function comprobar_parametros() {
   esac
   shift # past argument or value
   done
+ 
+  # Si algún parámetro no está damos mensaje de error y salimos
+  if [ -z "${script}" ] || [ -z "${usuarios}" ] || [ -z "${aulas}" ]; then
+    echo "Error! debe indicar el script, aula y usuario" 
+    man
+  fi
 }
-
+ 
 # Comprueba que exista el escript a ejecutar
 function comprobar_script() {
-  echo "Script a ejecutar:"${script}
   # Salimos si no existe el script a ejecutar
   if [ ! -f ${script} ]; then
-    echo "Script no encontrado o no indicado."  
-    # TODO: salir con mensaje de error
-    exit
+    echo "Error: script '${script}' no encontrado o no indicado."  
+    man
   else
     dir_script=$(dirname ${script})
     file_script=$(basename ${script})
