@@ -17,7 +17,7 @@ echo "lista ordenadores:"${ordenadores}
 
 # TODO: no funciona!
 filtrar_ordenadores
-echo "lista ordenadores encendidos:"${ordenadores}
+echo "lista ordenadores encendidos:"${encendidos}
 
 echo "PARÁMETROS:"
 echo "script:${script}"

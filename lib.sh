@@ -9,6 +9,11 @@ ssh_options="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 bold=$(tput bold)
 normal=$(tput sgr0)
 
+aulas=()
+ordenadores=()
+encendidos=()
+export aulas ordenadores encendidos
+
 # $1: mensaje de error
 function error() {
     echo "${bold}ERROR: $1${normal}"
@@ -61,7 +66,7 @@ function comprobar_parametros() {
   fi
 }
  
-# Comprueba que exista el escript a ejecutar
+# Comprueba que exista el script a ejecutar
 function comprobar_script() {
   # Salimos si no existe el script a ejecutar
   if [ ! -f ${script} ]; then
@@ -74,7 +79,6 @@ function comprobar_script() {
 }
 
 function crear_lista_ordenadores() {
-  # Si no se han indicado las aulas las procesamos todas
   if [ -z "${aulas}" ]; then
     for aula_file in ${aulas_dir}*; do
       aulas="${aulas}${aula_file} "
@@ -100,7 +104,7 @@ function crear_lista_ordenadores() {
 function ping_ordenador() {
   command="ping -w 1 $1"
   echo $command
-  eval $command &> /dev/null
+  eval $command
   if [ $? -eq 0 ]; then
     touch "${tmp_dir}$1"
   fi
@@ -118,6 +122,11 @@ function filtrar_ordenadores() {
   done
   echo "Comprobando ordenadores encendidos..."
   wait
+ 
+  # Cambiar el array de ordenadores
+  # TODO: falla aquí!!!
+  ls {$tmp_dir}* | xargs -n 1 basename > ${tmp_dir}encendidos
+  mapfile -t encendidos < ${tmp_dir}encendidos
 }
 
 # muestra ordenadores pendientes y los guarda
