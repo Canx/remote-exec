@@ -2,7 +2,6 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/"
 pendientes_dir="${DIR}${pendientes_dir}"
-aulas_dir="${DIR}${aulas_dir}"
 tmp_dir="${DIR}${tmp_dir}"
 log_dir="${DIR}${log_dir}"
 ssh_options="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
@@ -39,15 +38,15 @@ function comprobar_parametros() {
 
   case $key in
       -s|--script)
-      script="$2"
+      param_script="$2"
       shift # past argument
       ;;
       -a|--aulas)
-      aulas="$2"
+      param_aulas="$2"
       shift # past argument
       ;;
       -u|--usuarios)
-      usuarios="$2"
+      param_usuarios="$2"
       shift # past argument
       ;;
       --default)
@@ -61,31 +60,44 @@ function comprobar_parametros() {
   done
  
   # Si algún parámetro no está damos mensaje de error y salimos
-  if [ -z "${script}" ] || [ -z "${usuarios}" ] || [ -z "${aulas}" ]; then
+  if [ -z "${param_script}" ] || [ -z "${param_usuarios}" ] || [ -z "${param_aulas}" ]; then
     error "debe indicar el script, aula y usuario" 
   fi
+
+  comprobar_script
+  comprobar_usuarios
+  comprobar_aulas
 }
  
 # Comprueba que exista el script a ejecutar
 function comprobar_script() {
   # Salimos si no existe el script a ejecutar
-  if [ ! -f ${script} ]; then
-    error "script '${script}' no encontrado o no indicado."  
+  if [ ! -f ${param_script} ]; then
+    error "script '${param_script}' no encontrado o no indicado."  
   else
+    script=${param_script}
     dir_script=$(dirname ${script})
     file_script=$(basename ${script})
     filename_script=${file_script%.*}
   fi
 }
 
-function crear_lista_ordenadores() {
-  if [ -z "${aulas}" ]; then
-    for aula_file in ${aulas_dir}*; do
-      aulas="${aulas}${aula_file} "
-    done
-  fi
-  
-  # Si hay ordenadores pendientes para el script procesamos los ordenadores pendientes
+function comprobar_usuarios() {
+  # TODO: comprobar que sea una lista válida (no tenga caracteres raros)
+  usuarios=( $param_usuarios )
+}
+
+function comprobar_aulas() {
+  for aula_file in ${param_aulas}; do
+      # TODO: comprobar que existen los ficheros antes de añadirlos
+      if [ ! -f ${aula_file} ]; then
+         error "No existe el archivo de aulas ${aula_file}"
+      fi
+      aulas="${aula_file} "
+  done
+}
+
+function comprobar_ordenadores_pendientes() {
   todofile="pendientes_${file_script}"
   todofile="${todofile%.*}.txt"
   
@@ -94,6 +106,11 @@ function crear_lista_ordenadores() {
   else
     aulas=( ${pendientes_dir}${todofile} )
   fi
+}
+
+function crear_lista_ordenadores() {
+  # cambio el archivo de aulas si hay ordenadores pendientes
+  comprobar_ordenadores_pendientes
 
   # A partir de los archivos de aulas o pendientes hacemos la lista de ordenadores
   ordenadores=`cat ${aulas[@]}`
@@ -125,7 +142,7 @@ function filtrar_ordenadores() {
  
   # Cambiar el array de ordenadores
   # TODO: falla aquí!!!
-  ls {$tmp_dir}* | xargs -n 1 basename > ${tmp_dir}encendidos
+  ls ${tmp_dir} | xargs -n 1 > ${tmp_dir}encendidos
   mapfile -t encendidos < ${tmp_dir}encendidos
 }
 
@@ -151,7 +168,6 @@ function crear_directorios() {
   mkdir -p "${log_dir}${filename_script}"
   mkdir -p "${tmp_dir}"
   mkdir -p "${pendientes_dir}"
-  mkdir -p "${aulas_dir}"
 }
 
 # TODO: falta pulir los logs!!!
