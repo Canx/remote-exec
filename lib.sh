@@ -7,6 +7,8 @@ tmp_dir="${DIR}${tmp_dir}"
 log_dir="${DIR}${log_dir}"
 ssh_options="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 
+export ordenadores=''
+
 function comprobar_parametros() {
   while [[ $# > 1 ]]
   do
@@ -52,6 +54,7 @@ function comprobar_script() {
 }
 
 function crear_lista_ordenadores() {
+
   # Si no se han indicado las aulas las procesamos todas
   if [ -z "${aulas}" ]; then
     for aula_file in ${aulas_dir}*; do
@@ -106,6 +109,7 @@ function filtrar_ordenadores() {
   done
   echo "Comprobando ordenadores encendidos..."
   wait
+  
 }
 
 # muestra ordenadores pendientes y los guarda
