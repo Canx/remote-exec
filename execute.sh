@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 #
 # execute.sh -s <script> -a <aulas> -u <usuarios>
 #
@@ -6,21 +6,25 @@ source ./config.sh
 source ./lib.sh
 
 comprobar_parametros "$@"
+comprobar_script
+echo "script:${script}"
+echo "aulas:${aulas}"
+echo "usuarios:${usuarios}"
+echo
+
+crear_lista_ordenadores
+echo "lista ordenadores:"${ordenadores}
+
+# TODO: no funciona!
+filtrar_ordenadores
+echo "lista ordenadores encendidos:"${encendidos}
+
 echo "PARÁMETROS:"
 echo "script:${script}"
 echo "aulas:${aulas}"
 echo "usuarios:${usuarios}"
+echo "ordenadores:${ordenadores}"
 
-comprobar_script
-
-comprobar_usuarios
-echo "USUARIOS:"${usuarios}
-
-crear_lista_ordenadores
-echo "ORDENADORES:"${ordenadores}
-
-filtrar_ordenadores
-echo "ORDENADORES_ENCENDIDOS:"${ordenadores}
 
 crear_directorios
 

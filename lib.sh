@@ -2,10 +2,34 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/"
 pendientes_dir="${DIR}${pendientes_dir}"
-aulas_dir="${DIR}${aulas_dir}"
 tmp_dir="${DIR}${tmp_dir}"
 log_dir="${DIR}${log_dir}"
 ssh_options="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+aulas=()
+ordenadores=()
+encendidos=()
+export aulas ordenadores encendidos
+
+# $1: mensaje de error
+function error() {
+    echo "${bold}ERROR: $1${normal}"
+    echo
+    echo "Modo de empleo: $ execute.sh -s [script] -a [aulas] -u [usuarios]"
+    echo
+    echo "Ejecuta el script en las aulas y para los usuarios indicados."
+    echo "  [script] debe ser la ruta y nombre completo de un shell script."
+    echo "  [aulas] debe ser uno a más nombres de archivos separados por espacios, que contenga cada uno una IP o nombre de dispositivo por linea."
+    echo "  [usuarios] debe ser uno o más nombres de usuarios separados por espacios que esten en todos los dispositivos indicados."
+    echo
+    echo "Ejemplos:"
+    echo "  execute.sh -s scripts/ps.sh -a aula1 -u admin"
+    echo "  execute.sh -s scripts/ps.sh -a aula1 aula2 -u user1 user2"
+    echo
+    exit 1
+}
 
 export ordenadores=''
 
@@ -16,15 +40,15 @@ function comprobar_parametros() {
 
   case $key in
       -s|--script)
-      script="$2"
+      param_script="$2"
       shift # past argument
       ;;
       -a|--aulas)
-      aulas="$2"
+      param_aulas="$2"
       shift # past argument
       ;;
       -u|--usuarios)
-      usuarios="$2"
+      param_usuarios="$2"
       shift # past argument
       ;;
       --default)
@@ -36,17 +60,24 @@ function comprobar_parametros() {
   esac
   shift # past argument or value
   done
-}
+ 
+  # Si algún parámetro no está damos mensaje de error y salimos
+  if [ -z "${param_script}" ] || [ -z "${param_usuarios}" ] || [ -z "${param_aulas}" ]; then
+    error "debe indicar el script, aula y usuario" 
+  fi
 
-# Comprueba que exista el escript a ejecutar
+  comprobar_script
+  comprobar_usuarios
+  comprobar_aulas
+}
+ 
+# Comprueba que exista el script a ejecutar
 function comprobar_script() {
-  echo "Script a ejecutar:"${script}
   # Salimos si no existe el script a ejecutar
-  if [ ! -f ${script} ]; then
-    echo "Script no encontrado o no indicado."  
-    # TODO: salir con mensaje de error
-    exit
+  if [ ! -f ${param_script} ]; then
+    error "script '${param_script}' no encontrado o no indicado."  
   else
+    script=${param_script}
     dir_script=$(dirname ${script})
     file_script=$(basename ${script})
     filename_script=${file_script%.*}
@@ -63,6 +94,23 @@ function crear_lista_ordenadores() {
   fi
   
   # Si hay ordenadores pendientes para el script procesamos los ordenadores pendientes
+
+function comprobar_usuarios() {
+  # TODO: comprobar que sea una lista válida (no tenga caracteres raros)
+  usuarios=( $param_usuarios )
+}
+
+function comprobar_aulas() {
+  for aula_file in ${param_aulas}; do
+      # TODO: comprobar que existen los ficheros antes de añadirlos
+      if [ ! -f ${aula_file} ]; then
+         error "No existe el archivo de aulas ${aula_file}"
+      fi
+      aulas="${aula_file} "
+  done
+}
+
+function comprobar_ordenadores_pendientes() {
   todofile="pendientes_${file_script}"
   todofile="${todofile%.*}.txt"
   
@@ -71,27 +119,22 @@ function crear_lista_ordenadores() {
   else
     aulas=( ${pendientes_dir}${todofile} )
   fi
+}
+
+function crear_lista_ordenadores() {
+  # cambio el archivo de aulas si hay ordenadores pendientes
+  comprobar_ordenadores_pendientes
 
   # A partir de los archivos de aulas o pendientes hacemos la lista de ordenadores
   ordenadores=`cat ${aulas[@]}`
 }
-
-function comprobar_usuarios() {
- # Comprobar usuarios
-  if [ ! -n "${usuarios}" ]; then
-     echo "Usuarios no especificados. Utilizando usuarios por defecto: ${default_users}"
-     usuarios=${default_users}
-  fi
-}
-
-
 
 # ping
 # $1: ordenador
 function ping_ordenador() {
   command="ping -w 1 $1"
   echo $command
-  eval $command &> /dev/null
+  eval $command
   if [ $? -eq 0 ]; then
     touch "${tmp_dir}$1"
   fi
@@ -99,17 +142,22 @@ function ping_ordenador() {
 
 # Quitamos de "ordenadores" los que no hagan ping
 function filtrar_ordenadores() {
-  rm -rf "${tmp_dir}/*"
-  for aula in "${aulas[@]}"; do
-    current_size=${#ordenadores[@]}
-    mapfile -O ${current_size} -t ordenadores < ${aula}
-    for ordenador in ${ordenadores[@]}; do
-      ping_ordenador ${ordenador} &> /dev/null &
-    done
-  done
-  echo "Comprobando ordenadores encendidos..."
-  wait
+  #rm -rf "${tmp_dir}/*"
+  #for aula in "${aulas[@]}"; do
+  #  current_size=${#ordenadores[@]}
+  #  mapfile -O ${current_size} -t ordenadores < ${aula}
+  #  for ordenador in ${ordenadores[@]}; do
+  #    ping_ordenador ${ordenador} &> /dev/null &
+  #  done
+  #done
+  #echo "Comprobando ordenadores encendidos..."
+  #wait
   
+ 
+  # Cambiar el array de ordenadores
+  # TODO: falla aquí!!!
+  ls ${tmp_dir} | xargs -n 1 > ${tmp_dir}encendidos
+  mapfile -t encendidos < ${tmp_dir}encendidos
 }
 
 # muestra ordenadores pendientes y los guarda
@@ -134,7 +182,6 @@ function crear_directorios() {
   mkdir -p "${log_dir}${filename_script}"
   mkdir -p "${tmp_dir}"
   mkdir -p "${pendientes_dir}"
-  mkdir -p "${aulas_dir}"
 }
 
 # TODO: falta pulir los logs!!!
