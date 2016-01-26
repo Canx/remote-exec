@@ -92,8 +92,9 @@ function crear_lista_ordenadores() {
       aulas="${aulas}${aulas_dir}${aula_file} "
     done
   fi
-  
+
   # Si hay ordenadores pendientes para el script procesamos los ordenadores pendientes
+}
 
 function comprobar_usuarios() {
   # TODO: comprobar que sea una lista válida (no tenga caracteres raros)
@@ -132,7 +133,8 @@ function crear_lista_ordenadores() {
 # ping
 # $1: ordenador
 function ping_ordenador() {
-  command="ping -w 1 $1"
+  echo "ping_ordenador()"
+  command="ping -w 2 $1"
   echo $command
   eval $command
   if [ $? -eq 0 ]; then
@@ -142,21 +144,18 @@ function ping_ordenador() {
 
 # Quitamos de "ordenadores" los que no hagan ping
 function filtrar_ordenadores() {
-  #rm -rf "${tmp_dir}/*"
-  #for aula in "${aulas[@]}"; do
-  #  current_size=${#ordenadores[@]}
-  #  mapfile -O ${current_size} -t ordenadores < ${aula}
-  #  for ordenador in ${ordenadores[@]}; do
-  #    ping_ordenador ${ordenador} &> /dev/null &
-  #  done
-  #done
-  #echo "Comprobando ordenadores encendidos..."
-  #wait
+  echo "function filtrar_ordenadores()"
+  rm -rf "${tmp_dir}/*"
+  for ordenador in ${!ordenadores[@]}; do
+    ping_ordenador ${ordenador} &> /dev/null &
+  done
+  echo "Comprobando ordenadores encendidos..."
+  wait
   
  
-  # Cambiar el array de ordenadores
+  # Creamos array de ordenadores encendidos
   # TODO: falla aquí!!!
-  ls ${tmp_dir} | xargs -n 1 > ${tmp_dir}encendidos
+  ls ${tmp_dir} | xargs -n 2 > ${tmp_dir}encendidos
   mapfile -t encendidos < ${tmp_dir}encendidos
 }
 
@@ -188,7 +187,7 @@ function crear_directorios() {
 # remote $1 $2
 # $1: ordenador
 # $2: usuario
-function remote_script {
+function remote_script() {
   if [ -f "${tmp_dir}$1" ]; then
     scp ${ssh_options} ${script} $2@$1:/tmp/ &> /dev/null
     if ! [ $? -eq 0 ]; then
@@ -204,4 +203,4 @@ function remote_script {
   fi
 }
 
-export -f remote_script
+#export -f remote_script
