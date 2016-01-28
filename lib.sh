@@ -158,6 +158,7 @@ function filtrar_ordenadores() {
   ls ${tmp_dir} | xargs -n 2 > ${tmp_dir}encendidos
   mapfile -t encendidos < ${tmp_dir}encendidos
   cat ${tmp_dir}encendidos
+}
 
 
 # muestra ordenadores pendientes y los guarda
