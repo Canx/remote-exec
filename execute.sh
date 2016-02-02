@@ -17,7 +17,7 @@ echo "lista ordenadores:"${ordenadores}
 
 # TODO: no funciona!
 filtrar_ordenadores
-echo "lista ordenadores encendidos:"${encendidos}
+echo "lista ordenadores encendidos:"${encendidos[@]}
 
 echo "PARÁMETROS:"
 echo "script:${script}"
@@ -31,7 +31,7 @@ crear_directorios
 # Bucle principal
 # TODO: añadir capacidad de procesar en paralelo o en secuencial
 for usuario in "${usuarios[@]}"; do
-   for ordenador in ${ordenadores[@]}; do
+   for ordenador in ${encendidos[@]}; do
      echo ${usuario}@${ordenador}
      remote_script ${ordenador} ${usuario} &
    done

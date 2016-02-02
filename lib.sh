@@ -138,26 +138,25 @@ function ping_ordenador() {
   echo $command
   eval $command
   if [ $? -eq 0 ]; then
-    touch "${tmp_dir}$1"
+    touch "${tmp_dir}/encendidos/$1"
   fi
 }
 
 # Quitamos de "ordenadores" los que no hagan ping
 function filtrar_ordenadores() {
-  echo "function filtrar_ordenadores()"
-  rm -rf "${tmp_dir}/*"
-  for ordenador in ${!ordenadores[@]}; do
+  [ -d "${tmp_dir}encendidos" ] || mkdir -p "${tmp_dir}encendidos"
+  rm -rf "${tmp_dir}encendidos/*"
+  for ordenador in ${ordenadores[@]}; do
+    echo "PING: ${ordenador}"
     ping_ordenador ${ordenador} &> /dev/null &
   done
   echo "Comprobando ordenadores encendidos..."
   wait
   
- 
   # Creamos array de ordenadores encendidos
-  # TODO: falla aquí!!!
-  ls ${tmp_dir} | xargs -n 2 > ${tmp_dir}encendidos
-  mapfile -t encendidos < ${tmp_dir}encendidos
-  cat ${tmp_dir}encendidos
+  encendidos=(`echo ${tmp_dir}encendidos/* | xargs -n 1 basename`)
+
+  # TODO: añadir ordenadores apagados a array pendientes!
 }
 
 
@@ -190,7 +189,7 @@ function crear_directorios() {
 # $1: ordenador
 # $2: usuario
 function remote_script() {
-  if [ -f "${tmp_dir}$1" ]; then
+  if [ -f "${tmp_dir}encendidos/$1" ]; then
     scp ${ssh_options} ${script} $2@$1:/tmp/ &> /dev/null
     if ! [ $? -eq 0 ]; then
       log "${2}@${1}. Falta instalar sshd o usuario incorrecto" "errores.log"
