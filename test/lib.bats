@@ -34,3 +34,13 @@ load test_helper # incluye mockup que no hace ping a los ordenadores que comienz
    filtrar_ordenadores
    [ $(ls -1 ${tmp_dir} | wc -l) -eq 0 ]
 }
+
+@test "El array apagados debe contener a los apagados" {
+   ordenadores=( '!ordenador1' '!ordenador2' 'ordenador3' )
+   encendidos=()
+
+   # Debe quitar los ordenadores que no hacen ping 
+   filtrar_ordenadores
+   num_apagados=${#apagados[@]}
+   [ "$num_apagados" -eq 2 ]
+}

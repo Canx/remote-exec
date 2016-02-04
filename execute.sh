@@ -13,11 +13,10 @@ echo "usuarios:${usuarios}"
 echo
 
 crear_lista_ordenadores
-echo "lista ordenadores:"${ordenadores}
+echo "lista ordenadores:\n"${ordenadores}
 
-# TODO: no funciona!
 filtrar_ordenadores
-echo "lista ordenadores encendidos:"${encendidos[@]}
+echo "lista ordenadores encendidos:\n"${encendidos[@]}
 
 echo "PARÁMETROS:"
 echo "script:${script}"

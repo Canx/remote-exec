@@ -151,15 +151,15 @@ function filtrar_ordenadores() {
   done
   echo "Comprobando ordenadores encendidos..."
   wait
-  
-  # Creamos array de ordenadores encendidos
-  # TODO: cuando está vacío falla!!!
-  for encendido in ${tmp_dir}encendidos/*; do
-    test -f "$encendido" || continue
-    echo $encendido
-    encendidos+=( $(basename $encendido) )
+
+  # creamos array de encendidos y apagados
+  for ordenador in ${ordenadores[@]}; do
+     if test -f ${tmp_dir}encendidos/${ordenador}; then
+       encendidos+=( ${ordenador} )
+     else
+       apagados+=( ${ordenador} )
+     fi
   done
-  # TODO: añadir ordenadores apagados a array pendientes!
 
   # Limpiamos
   rm -rf "${tmp_dir}"
