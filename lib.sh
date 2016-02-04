@@ -138,25 +138,31 @@ function ping_ordenador() {
   echo $command
   eval $command
   if [ $? -eq 0 ]; then
-    touch "${tmp_dir}/encendidos/$1"
+    touch "${tmp_dir}encendidos/$1"
   fi
 }
 
 # Quitamos de "ordenadores" los que no hagan ping
 function filtrar_ordenadores() {
+  rm -rf "${tmp_dir}*"
   [ -d "${tmp_dir}encendidos" ] || mkdir -p "${tmp_dir}encendidos"
-  rm -rf "${tmp_dir}encendidos/*"
   for ordenador in ${ordenadores[@]}; do
-    echo "PING: ${ordenador}"
     ping_ordenador ${ordenador} &> /dev/null &
   done
   echo "Comprobando ordenadores encendidos..."
   wait
   
   # Creamos array de ordenadores encendidos
-  encendidos=(`echo ${tmp_dir}encendidos/* | xargs -n 1 basename`)
-
+  # TODO: cuando está vacío falla!!!
+  for encendido in ${tmp_dir}encendidos/*; do
+    test -f "$encendido" || continue
+    echo $encendido
+    encendidos+=( $(basename $encendido) )
+  done
   # TODO: añadir ordenadores apagados a array pendientes!
+
+  # Limpiamos
+  rm -rf "${tmp_dir}"
 }
 
 
