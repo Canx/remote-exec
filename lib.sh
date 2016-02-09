@@ -111,21 +111,21 @@ function comprobar_aulas() {
   done
 }
 
-function comprobar_ordenadores_pendientes() {
-  todofile="pendientes_${file_script}"
-  todofile="${todofile%.*}.txt"
-  
-  if [ ! -f ${pendientes_dir}${todofile} ]; then
-    aulas=( ${aulas} )
-  else
-    aulas=( ${pendientes_dir}${todofile} )
-  fi
-}
+# TODO: por rehacer
+#function comprobar_ordenadores_pendientes() {
+#  todofile="pendientes_${file_script}"
+#  todofile="${todofile%.*}.txt"
+#  
+#  if [ ! -f ${pendientes_dir}${todofile} ]; then
+#    aulas=( ${aulas} )
+#  else
+#    aulas=( ${pendientes_dir}${todofile} )
+#  fi
+#}
 
 function crear_lista_ordenadores() {
   # cambio el archivo de aulas si hay ordenadores pendientes
   comprobar_ordenadores_pendientes
-
   # A partir de los archivos de aulas o pendientes hacemos la lista de ordenadores
   ordenadores=`cat ${aulas[@]}`
 }
@@ -142,8 +142,29 @@ function ping_ordenador() {
   fi
 }
 
-# Quitamos de "ordenadores" los que no hagan ping
+# Que pasa si ejecutamos un comando otra vez?
+# Debe continuar desde lo realizado si detecta un archivo pending en el comando!!!
+function check_pending() {
+
+
+}
+
+# Leemos el fichero ${log_dir}/${comando}/pending
+# y creamos el array ${pendientes} a partir de él
+function load_pending() {
+  if [ -f "${log_dir}/${comando}/pending" ]; then
+    readarray pendientes < ${log_dir}/${comando}/pending
+  fi 
+}
+
+# Quitamos de "ordenadores" los que ya esten procesados y los que no esten alcanzables por ping
 function filtrar_ordenadores() {
+  # TODO: quitar ordenadores ya procesados en otra ocasión
+  
+  load_pending
+
+  # comprobar_ordenadores_encendidos
+ 
   rm -rf "${tmp_dir}*"
   [ -d "${tmp_dir}encendidos" ] || mkdir -p "${tmp_dir}encendidos"
   for ordenador in ${ordenadores[@]}; do
@@ -169,7 +190,7 @@ function filtrar_ordenadores() {
 # muestra ordenadores pendientes y los guarda
 function guardar_ordenadores_pendientes() {
   if [ -n "${pendientes}" ]; then
-    echo ${pendientes} > ${pendientes_dir}${todofile}
+    echo ${pendientes} >> ${pendientes_dir}${todofile}
   fi
 }
 
@@ -190,6 +211,17 @@ function crear_directorios() {
   mkdir -p "${pendientes_dir}"
 }
 
+# $1: ordenador
+# $2: causa del estado pendiente (1 palabra)
+# $3: causa del estado pendiente (descripción larga)
+function add_pending() {
+  # 
+  # Añadimos el ordenador a un fichero del tipo
+  #
+  echo "$1" >> ${pendientes_dir}
+  log "${1}: ${3}" "errores.log"
+}
+
 # TODO: falta pulir los logs!!!
 # remote $1 $2
 # $1: ordenador
@@ -199,14 +231,14 @@ function remote_script() {
     scp ${ssh_options} ${script} $2@$1:/tmp/ &> /dev/null
     if ! [ $? -eq 0 ]; then
       log "${2}@${1}. Falta instalar sshd o usuario incorrecto" "errores.log"
-      pendientes=${pendientes}$1" "
+      # TODO: debemos crear archivos, no valen variables (multithreaded)!!!!
+      add_pending($1, "ssh", "Error ssh")
     else
       #touch "${DIR}${log_dir}${filename_script}/${1}"
       ssh ${ssh_options} $2@$1 "source /tmp/${file_script}" > ${tmp_dir}$1 &>> "${log_dir}${filename_script}/${1}"
     fi
   else
-    pendientes=${pendientes}$1" "
-    log "${2}@${1}. Apagado" "errores.log"
+    add_pending($1, "off", "Apagado")
   fi
 }
 
